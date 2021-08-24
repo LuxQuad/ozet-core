@@ -25,7 +25,12 @@ SECRET_KEY = 'django-insecure-#0h9soeou1rahfm#+7@eu1gl1zyv0mz)$u63^q+otr*gtfxl4=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'luxquad.com',
+    'staging.luxquad.com',
+    'localhost',
+    '127.0.0.1'
+]
 
 
 # Application definition

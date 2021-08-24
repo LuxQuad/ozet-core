@@ -14,7 +14,6 @@ executors:
           username: $DOCKERHUB_USER
           password: $DOCKERHUB_PASSWORD
     working_directory: ~/workspace
-
 commands:
   slack_chatie_notify:
     description: ""
@@ -86,13 +85,11 @@ jobs:
     executor: ozet-excutor
     steps:
       - checkout
-
       - restore_cache:
           keys:
           - deps1-{{ .Branch }}-{{ checksum ".misc/requirements/base.txt" }}
           # fallback to using the latest cache if no exact match is found
           - deps1-
-
       - run:
           name: Install virtual environments
           command: |
@@ -107,23 +104,19 @@ jobs:
           command: |
             source ~/workspace/venv/bin/activate
             pip-sync .misc/requirements/test.txt
-
       - run:
           name: Install Environment
           command: |
             touch .misc/env/prod.env
             env > .misc/env/prod.env
-
       - save_cache:
           key: deps1-{{ .Branch }}-{{ checksum ".misc/requirements/base.txt" }}
           paths:
             - ./*
-
       - persist_to_workspace:
           root: ./
           paths:
             - ./*
-
       - store_artifacts:
           name: Save artifacts - tests
           path: ~/workspace/app/tests
@@ -139,10 +132,8 @@ jobs:
             source ~/workspace/venv/bin/activate
             sh .misc/scripts/run_tests.sh
             cp -r ~/workspace/.pytest_results ~/workspace/.tests-results
-
       - store_test_results:
           path: ~/workspace/.tests-results
-
       - run:
           name: Upload Codecov
           command: |
@@ -157,43 +148,38 @@ jobs:
     steps:
       - attach_workspace:
           at: ~/workspace
-
       - setup_remote_docker:
           version: 20.10.2
-
       - run:
           name: Install Package
           command: |
             sudo apt-get update
             sudo apt-get install sshpass
-
       - run:
           name: Install Environment
           command: |
             env > .env
             cp .env prod.env
-
       - run:
           name: Login to docker hub
           command: |
             docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD
-
       - run:
           name: Build docker image
           command: |
             docker build --file .misc/docker/Dockerfile -t $IMAGE_NAME:latest .
-
       - run:
           name: Deploy docker image
           command: |
             docker push $IMAGE_NAME:latest
-
+      - add_ssh_keys:
+          fingerprints:
+            - "5b:6c:76:ff:d0:dd:25:02:a4:15:1e:d4:3f:b8:ae:63"
+            - "20:0e:88:8b:96:4f:c0:d9:27:0b:f9:d8:59:06:14:59"
       - run:
           name: Release docker image
           command: |
-            #sshpass -p $RELEASE_PASSWORD ssh -o StrictHostKeyChecking=no $RELEASE_HOST "$RELEASE_HOOK"
-            echo 'Deploy Trigger'
-
+            ssh -o StrictHostKeyChecking=no ubuntu@staging.luxquad.com "sh /docker/ozet-core/deploy.sh"
       - slack_chatie_notify:
           header: "${SLACK_APP_PLATFORM}를 '<< parameters.deploy_target >>'에 성공적으로 배포했습니다 :tada:"
           img_url: "https://i.ibb.co/52X6Dnc/free-icon-backlog-5229430.png"
@@ -211,43 +197,38 @@ jobs:
     steps:
       - attach_workspace:
           at: ~/workspace
-
       - setup_remote_docker:
           version: 20.10.2
-
       - run:
           name: Install Package
           command: |
             sudo apt-get update
             sudo apt-get install sshpass
-
       - run:
           name: Install Environment
           command: |
             env > .env
             cp .env prod.env
-
       - run:
           name: Login to docker hub
           command: |
             docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD
-
       - run:
           name: Build docker image
           command: |
             docker build --file .misc/docker/Dockerfile -t $IMAGE_NAME:latest .
-
       - run:
           name: Deploy docker image
           command: |
             docker push $IMAGE_NAME:latest
-
+      - add_ssh_keys:
+          fingerprints:
+            - "5b:6c:76:ff:d0:dd:25:02:a4:15:1e:d4:3f:b8:ae:63"
+            - "20:0e:88:8b:96:4f:c0:d9:27:0b:f9:d8:59:06:14:59"
       - run:
           name: Release docker image
           command: |
-            #sshpass -p $RELEASE_PASSWORD ssh -o StrictHostKeyChecking=no $RELEASE_HOST "$RELEASE_HOOK"
-            echo 'Deploy Trigger'
-
+            ssh -o StrictHostKeyChecking=no ubuntu@staging.luxquad.com "sh /docker/ozet-core/deploy.sh"
       - slack_chatie_notify:
           header: "${SLACK_APP_PLATFORM}를 '<< parameters.deploy_target >>'에 성공적으로 배포했습니다 :tada:"
           img_url: "https://i.ibb.co/52X6Dnc/free-icon-backlog-5229430.png"
@@ -256,7 +237,6 @@ jobs:
           header: "${SLACK_APP_PLATFORM}를 '<< parameters.deploy_target >>'에 배포하는 중에 문제가 발생했습니다 :warning:"
           img_url: "https://i.ibb.co/HVbJ5FC/free-icon-cancelled-5229496.png"
           event: fail
-
 workflows:
   build-with-test:
     jobs:
@@ -311,7 +291,7 @@ workflows:
           filters:
             <<: *filters-deploy
 
-      - deploy_staging:
+      - deploy_production:
           requires:
             - test
           filters:
