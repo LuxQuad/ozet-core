@@ -9,8 +9,11 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-import os, sys
+import os
+import sys
 from pathlib import Path
+
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,10 +41,55 @@ ALLOWED_HOSTS = [
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
+    'django.contrib.sites',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # django-extensions
+    'django_extensions',
+
+    # django-mysql
+    'django_mysql',
+
+    # django-safedelete
+    'safedelete',
+
+    # django-phonenumber-field
+    'phonenumber_field',
+
+    # django_filters
+    'django_filters',
+
+    # django-summernote
+    'django_summernote',
+
+    # django-cors-headers
+    'corsheaders',
+
+    # django-rest-framework
+    'rest_framework',
+    'rest_auth',
+
+    # drf-yasg
+    'drf_yasg',
+
+    # django-all-auth
+    'allauth',
+    'allauth.account',
+    'rest_auth.registration',
+
+    # social providers
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.kakao',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.naver',
+    'allauth.socialaccount.providers.apple',
+
+    # apps
+    'user',
 ]
 
 MIDDLEWARE = [
@@ -129,3 +177,65 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# django-cors-headers
+# https://github.com/ottoyiu/django-cors-headers
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_HEADERS = list(default_headers) + ['X-Chatie-Rec']
+CORS_EXPOSE_HEADERS = ['X-Chatie-Rec']
+
+# django-extensions
+# https://django-extensions.readthedocs.io
+SHELL_PLUS_PRINT_SQL = False
+
+# Sites
+# https://docs.djangoproject.com/en/2.1/ref/contrib/sites/
+SITE_ID = 1
+
+# Authentication
+# https://docs.djangoproject.com/ko/2.1/topics/auth/customizing/#substituting-a-custom-user-model
+AUTH_USER_MODEL = 'user.User'
+
+# Authentication
+# https://docs.djangoproject.com/ko/2.1/topics/auth/customizing/
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+)
+
+# django-allauth
+# https://django-allauth.readthedocs.io/en/latest/
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
+ACCOUNT_USER_MODEL_EMAIL_FIELD = 'email'
+ACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_UNIQUE_EMAIL = False
+ACCOUNT_ADAPTER = 'utils.django.allauth.adapters.AccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'utils.django.allauth.adapters.SocialAccountAdapter'
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_STORE_TOKENS = False
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
+    },
+    'facebook': {
+        'METHOD': 'oauth2',
+        'SCOPE': ['email', 'public_profile'],
+        'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
+        'INIT_PARAMS': {'cookie': True},
+        'FIELDS': [
+            'id',
+            'email',
+            'name',
+        ],
+        'EXCHANGE_TOKEN': False,
+        'VERIFIED_EMAIL': False,
+        'VERSION': 'v6.0',
+    }
+}
